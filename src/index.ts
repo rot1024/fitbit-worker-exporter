@@ -74,8 +74,10 @@ app.get("/auth/callback", async (c) => {
     await c.env.KV.put("tokens", JSON.stringify(tokens));
     await c.env.KV.delete("oauth_state");
 
+    console.log("OAuth authentication successful");
     return c.text("Authentication successful! You can close this window.");
   } catch (err) {
+    console.error("OAuth authentication failed:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
     return c.text(`Authentication failed: ${message}`, 500);
   }
@@ -86,6 +88,8 @@ app.get("/fetch", async (c) => {
   const dateParam = c.req.query("date");
   const date = dateParam ?? getYesterdayDate();
 
+  console.log(`Fetching data for ${date}`);
+
   try {
     const client = new FitbitClient(
       getOAuthConfig(c.env),
@@ -93,10 +97,14 @@ app.get("/fetch", async (c) => {
     );
     const data = await client.getDailyData(date);
 
+    console.log(`Fitbit data fetched for ${date}:`, data);
+
     await saveToNotion(c.env.NOTION_API_KEY, c.env.NOTION_DATA_SOURCE_ID, data);
 
+    console.log(`Successfully saved data for ${date}`);
     return c.json({ success: true, data });
   } catch (err) {
+    console.error(`Failed to fetch/save data for ${date}:`, err);
     const message = err instanceof Error ? err.message : "Unknown error";
     return c.json({ success: false, error: message }, 500);
   }
@@ -121,15 +129,24 @@ async function scheduled(
 ): Promise<void> {
   const date = getYesterdayDate();
 
-  const client = new FitbitClient(
-    getOAuthConfig(env),
-    createTokenStorage(env.KV)
-  );
-  const data = await client.getDailyData(date);
+  console.log(`[Cron] Fetching data for ${date}`);
 
-  await saveToNotion(env.NOTION_API_KEY, env.NOTION_DATA_SOURCE_ID, data);
+  try {
+    const client = new FitbitClient(
+      getOAuthConfig(env),
+      createTokenStorage(env.KV)
+    );
+    const data = await client.getDailyData(date);
 
-  console.log(`Successfully saved data for ${date}`);
+    console.log(`[Cron] Fitbit data fetched for ${date}:`, data);
+
+    await saveToNotion(env.NOTION_API_KEY, env.NOTION_DATA_SOURCE_ID, data);
+
+    console.log(`[Cron] Successfully saved data for ${date}`);
+  } catch (err) {
+    console.error(`[Cron] Failed to fetch/save data for ${date}:`, err);
+    throw err;
+  }
 }
 
 export default {
