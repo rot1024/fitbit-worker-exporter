@@ -64,10 +64,10 @@ cp wrangler.toml.example wrangler.toml
 ### 4. Create KV Namespace
 
 ```bash
-wrangler kv:namespace create KV
+npx wrangler kv:namespace create KV
 ```
 
-Add the output ID to `wrangler.toml`:
+Uncomment and add the output ID to `wrangler.toml`:
 
 ```toml
 [[kv_namespaces]]
@@ -75,23 +75,23 @@ binding = "KV"
 id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-### 5. Configure Secrets
+### 5. Deploy
 
 ```bash
-wrangler secret put FITBIT_CLIENT_ID
-wrangler secret put FITBIT_CLIENT_SECRET
-wrangler secret put NOTION_API_KEY
-wrangler secret put NOTION_DATA_SOURCE_ID
-wrangler secret put OAUTH_REDIRECT_URI
+npx wrangler deploy
+```
+
+### 6. Configure Secrets
+
+```bash
+npx wrangler secret put FITBIT_CLIENT_ID
+npx wrangler secret put FITBIT_CLIENT_SECRET
+npx wrangler secret put NOTION_API_KEY
+npx wrangler secret put NOTION_DATA_SOURCE_ID
+npx wrangler secret put OAUTH_REDIRECT_URI
 ```
 
 `OAUTH_REDIRECT_URI` should be in the format `https://your-worker.your-subdomain.workers.dev/auth/callback`.
-
-### 6. Deploy
-
-```bash
-npm run deploy
-```
 
 ### 7. OAuth Authentication
 

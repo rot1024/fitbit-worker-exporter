@@ -1,19 +1,25 @@
+# Initial setup:
+#   cp wrangler.toml.example wrangler.toml
+#   npx wrangler login
+#   npx wrangler kv:namespace create KV
+#   # Copy the output ID to [[kv_namespaces]] below and uncomment
+#   npx wrangler deploy
+#   npx wrangler secret put FITBIT_CLIENT_ID
+#   npx wrangler secret put FITBIT_CLIENT_SECRET
+#   npx wrangler secret put NOTION_API_KEY
+#   npx wrangler secret put NOTION_DATA_SOURCE_ID
+#   npx wrangler secret put OAUTH_REDIRECT_URI
+
 name = "fitbit-worker-exporter"
 main = "src/index.ts"
-compatibility_date = "2024-12-30"
+compatibility_date = "2026-01-05"
+workers_dev = true
+preview_urls = false
 
 [triggers]
 crons = ["0 21 * * *"]  # UTC 21:00 = JST 6:00
 
-[[kv_namespaces]]
-binding = "KV"
-id = ""  # wrangler kv:namespace create KV で作成後に設定
-
-# [vars]
-# OAUTH_REDIRECT_URI = "https://your-worker.your-subdomain.workers.dev/auth/callback"
-
-# Secrets（wrangler secret put で設定）:
-# - FITBIT_CLIENT_ID
-# - FITBIT_CLIENT_SECRET
-# - NOTION_API_KEY
-# - NOTION_DATA_SOURCE_ID
+# Uncomment after running: npx wrangler kv:namespace create KV
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "your-kv-namespace-id"
