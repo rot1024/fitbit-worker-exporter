@@ -19,6 +19,11 @@ preview_urls = false
 [triggers]
 crons = ["0 21 * * *"]  # UTC 21:00 = JST 6:00
 
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+
 # Uncomment after running: npx wrangler kv:namespace create KV
 # [[kv_namespaces]]
 # binding = "KV"
