@@ -126,8 +126,52 @@ npm run dev
 # Type check
 npm run typecheck
 
-# Deploy
-npm run deploy
+# Deploy (manual)
+npx wrangler deploy
+```
+
+## CI/CD
+
+GitHub Actions automatically runs typecheck on all PRs and deploys to Cloudflare Workers on push to main.
+
+Deploy is skipped if secrets are not configured.
+
+### Required GitHub Secrets (for deploy)
+
+| Secret | Description |
+|--------|-------------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers edit permission |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID (found in dashboard URL or Workers overview) |
+| `KV_NAMESPACE_ID` | KV namespace ID from `npx wrangler kv:namespace create KV` |
+
+### Finding Cloudflare Account ID
+
+```bash
+npx wrangler whoami
+```
+
+Or find it in the dashboard URL: `https://dash.cloudflare.com/<ACCOUNT_ID>`
+
+### Creating Cloudflare API Token
+
+1. Go to [Cloudflare Dashboard > My Profile > API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Click "Create Token"
+3. Use "Edit Cloudflare Workers" template, or create custom token with:
+   - **Account > Workers Scripts > Edit** - Deploy workers
+   - **Account > Workers KV Storage > Edit** - Access KV namespaces
+   - **Account > Account Settings > Read** - Read account info
+   - **Zone > Workers Routes > Edit** - (Optional) If using custom domains
+4. Set Account/Zone Resources as needed
+5. Click "Continue to summary" > "Create Token"
+6. Copy the token (shown only once)
+
+### Setting GitHub Secrets
+
+```bash
+# Set secrets using gh CLI
+gh secret set CLOUDFLARE_API_TOKEN
+gh secret set CLOUDFLARE_ACCOUNT_ID
+gh secret set KV_NAMESPACE_ID
 ```
 
 ## Directory Structure
