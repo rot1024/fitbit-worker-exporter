@@ -1,0 +1,19 @@
+name = "fitbit-worker-exporter"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+
+[triggers]
+crons = ["0 21 * * *"]  # UTC 21:00 = JST 6:00
+
+[[kv_namespaces]]
+binding = "KV"
+id = ""  # wrangler kv:namespace create KV で作成後に設定
+
+# [vars]
+# OAUTH_REDIRECT_URI = "https://your-worker.your-subdomain.workers.dev/auth/callback"
+
+# Secrets（wrangler secret put で設定）:
+# - FITBIT_CLIENT_ID
+# - FITBIT_CLIENT_SECRET
+# - NOTION_API_KEY
+# - NOTION_DATA_SOURCE_ID
