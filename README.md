@@ -29,6 +29,7 @@ A Cloudflare Worker that automatically fetches daily Fitbit data and saves it to
 
 ```bash
 npm install
+cp wrangler.toml.example wrangler.toml
 ```
 
 ### 2. Create Fitbit App
