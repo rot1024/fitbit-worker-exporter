@@ -17,7 +17,6 @@
     "wrangler": "^4.54.0"
   },
   "dependencies": {
-    "@notionhq/client": "^5.6.0",
     "hono": "^4.6.16"
   }
 }

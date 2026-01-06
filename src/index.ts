@@ -102,7 +102,7 @@ app.get("/fetch", async (c) => {
     await saveToNotion(c.env.NOTION_API_KEY, c.env.NOTION_DATA_SOURCE_ID, data);
 
     console.log(`Successfully saved data for ${date}`);
-    return c.json({ success: true, data });
+    return c.json({ success: true, date });
   } catch (err) {
     console.error(`Failed to fetch/save data for ${date}:`, err);
     const message = err instanceof Error ? err.message : "Unknown error";

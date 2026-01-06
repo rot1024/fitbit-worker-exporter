@@ -1,23 +1,55 @@
-import { Client } from "@notionhq/client";
 import type { DailyData } from "../packages/fitbit/src/index.js";
+
+const NOTION_API_BASE = "https://api.notion.com/v1";
+const NOTION_VERSION = "2022-06-28";
+
+interface NotionResponse {
+  results: { id: string }[];
+}
+
+async function notionRequest<T>(
+  apiKey: string,
+  method: string,
+  path: string,
+  body?: unknown
+): Promise<T> {
+  const response = await fetch(`${NOTION_API_BASE}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "Notion-Version": NOTION_VERSION,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Notion API error: ${response.status} ${error}`);
+  }
+
+  return response.json() as Promise<T>;
+}
 
 export async function saveToNotion(
   apiKey: string,
-  dataSourceId: string,
+  databaseId: string,
   data: DailyData
 ): Promise<void> {
-  const notion = new Client({ auth: apiKey });
-
   // Check for existing entry with same date
-  const existing = await notion.dataSources.query({
-    data_source_id: dataSourceId,
-    filter: {
-      property: "Date",
-      date: {
-        equals: data.date,
+  const existing = await notionRequest<NotionResponse>(
+    apiKey,
+    "POST",
+    `/databases/${databaseId}/query`,
+    {
+      filter: {
+        property: "Date",
+        date: {
+          equals: data.date,
+        },
       },
-    },
-  });
+    }
+  );
 
   const properties = {
     Date: {
@@ -57,14 +89,11 @@ export async function saveToNotion(
   if (existing.results.length > 0) {
     // Update existing page
     const pageId = existing.results[0].id;
-    await notion.pages.update({
-      page_id: pageId,
-      properties,
-    });
+    await notionRequest(apiKey, "PATCH", `/pages/${pageId}`, { properties });
   } else {
     // Create new page
-    await notion.pages.create({
-      parent: { database_id: dataSourceId },
+    await notionRequest(apiKey, "POST", "/pages", {
+      parent: { database_id: databaseId },
       properties,
     });
   }
