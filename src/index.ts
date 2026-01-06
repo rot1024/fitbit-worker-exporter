@@ -17,6 +17,7 @@ type Bindings = {
   NOTION_API_KEY: string;
   NOTION_DATA_SOURCE_ID: string;
   OAUTH_REDIRECT_URI: string;
+  DEBUG_MODE?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -83,8 +84,12 @@ app.get("/auth/callback", async (c) => {
   }
 });
 
-// Manual fetch (for testing)
+// Manual fetch (for testing, requires DEBUG_MODE)
 app.get("/fetch", async (c) => {
+  if (c.env.DEBUG_MODE !== "true") {
+    return c.text("Not Found", 404);
+  }
+
   const dateParam = c.req.query("date");
   const date = dateParam ?? getYesterdayDate();
 
