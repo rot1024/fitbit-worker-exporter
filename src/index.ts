@@ -18,6 +18,7 @@ type Bindings = {
   NOTION_DATA_SOURCE_ID: string;
   OAUTH_REDIRECT_URI: string;
   DEBUG_MODE?: string;
+  TZ_OFFSET?: string; // Timezone offset in hours (e.g., "9" for JST, "-5" for EST)
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -91,7 +92,8 @@ app.get("/fetch", async (c) => {
   }
 
   const dateParam = c.req.query("date");
-  const date = dateParam ?? getYesterdayDate();
+  const tzOffset = parseInt(c.env.TZ_OFFSET ?? "9", 10);
+  const date = dateParam ?? getYesterdayDate(tzOffset);
 
   console.log(`Fetching data for ${date}`);
 
@@ -120,10 +122,11 @@ app.get("/", (c) => {
   return c.text("Fitbit Worker Exporter is running!");
 });
 
-function getYesterdayDate(): string {
+function getYesterdayDate(tzOffset: number): string {
   const now = new Date();
-  now.setDate(now.getDate() - 1);
-  return now.toISOString().split("T")[0];
+  const localNow = new Date(now.getTime() + tzOffset * 60 * 60 * 1000);
+  localNow.setDate(localNow.getDate() - 1);
+  return localNow.toISOString().split("T")[0];
 }
 
 // Cron handler
@@ -132,7 +135,8 @@ async function scheduled(
   env: Bindings,
   _ctx: ExecutionContext
 ): Promise<void> {
-  const date = getYesterdayDate();
+  const tzOffset = parseInt(env.TZ_OFFSET ?? "9", 10);
+  const date = getYesterdayDate(tzOffset);
 
   console.log(`[Cron] Fetching data for ${date}`);
 

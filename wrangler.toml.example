@@ -31,3 +31,4 @@ invocation_logs = true
 
 # [vars]
 # DEBUG_MODE = "true"  # Enable /fetch endpoint for testing
+# TZ_OFFSET = "9"      # Timezone offset in hours (default: 9 for JST)
