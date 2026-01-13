@@ -4,10 +4,11 @@ A Cloudflare Worker that automatically fetches daily Fitbit data and saves it to
 
 ## Features
 
-- Fetch data from Fitbit API (calories, steps, distance, sleep)
+- Fetch data from Fitbit API (calories, steps, distance, sleep, weight)
 - Auto-save to Notion database
 - Daily scheduled execution via Cron Trigger (6:00 AM JST)
 - Built-in OAuth 2.0 authentication flow
+- Backfill CLI for importing historical data
 
 ## Collected Data
 
@@ -22,6 +23,9 @@ A Cloudflare Worker that automatically fetches daily Fitbit data and saves it to
 | Light Sleep | Light sleep time (minutes) |
 | REM Sleep | REM sleep time (minutes) |
 | Awake | Awake time (minutes) |
+| Weight | Body weight (kg) |
+| BMI | Body Mass Index |
+| Body Fat | Body fat percentage (%) |
 
 ## Setup
 
@@ -60,6 +64,9 @@ cp wrangler.toml.example wrangler.toml
 | Light Sleep | Number |
 | REM Sleep | Number |
 | Awake | Number |
+| Weight | Number |
+| BMI | Number |
+| Body Fat | Number |
 
 ### 4. Create KV Namespace
 
@@ -116,6 +123,33 @@ curl https://your-worker.workers.dev/fetch
 # Fetch data for a specific date
 curl https://your-worker.workers.dev/fetch?date=2024-01-15
 ```
+
+### Backfill Historical Data
+
+Import historical data for a date range using the local CLI:
+
+```bash
+# Preview (dry run)
+npm run backfill -- --from=2024-01-01 --to=2024-12-31 --dry-run
+
+# Execute
+npm run backfill -- --from=2024-01-01 --to=2024-12-31
+```
+
+**Prerequisites:**
+
+1. Create `.dev.vars` file with your credentials:
+
+```
+FITBIT_CLIENT_ID=your_client_id
+FITBIT_CLIENT_SECRET=your_client_secret
+NOTION_API_KEY=your_notion_api_key
+NOTION_DATA_SOURCE_ID=your_notion_database_id
+```
+
+2. Login to Cloudflare: `npx wrangler login`
+
+**Note:** The script handles Fitbit API rate limits automatically (150 requests/hour ≈ 48 days/hour).
 
 ## Development
 
@@ -186,6 +220,8 @@ fitbit-worker-exporter/
 │       │   ├── oauth.ts
 │       │   └── types.ts
 │       └── package.json
+├── scripts/
+│   └── backfill.ts       # CLI for importing historical data
 ├── src/
 │   ├── index.ts          # Hono app
 │   └── notion.ts         # Notion integration
