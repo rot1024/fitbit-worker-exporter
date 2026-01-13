@@ -51,7 +51,7 @@ export async function saveToNotion(
     }
   );
 
-  const properties = {
+  const properties: Record<string, unknown> = {
     Date: {
       date: {
         start: data.date,
@@ -85,6 +85,16 @@ export async function saveToNotion(
       number: data.awake,
     },
   };
+
+  if (data.weight !== undefined) {
+    properties.Weight = { number: Math.round(data.weight * 100) / 100 };
+  }
+  if (data.bmi !== undefined) {
+    properties.BMI = { number: Math.round(data.bmi * 100) / 100 };
+  }
+  if (data.bodyFat !== undefined) {
+    properties["Body Fat"] = { number: Math.round(data.bodyFat * 100) / 100 };
+  }
 
   if (existing.results.length > 0) {
     // Update existing page

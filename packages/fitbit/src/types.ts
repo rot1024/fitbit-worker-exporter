@@ -79,6 +79,21 @@ export interface SleepResponse {
   summary: SleepSummary;
 }
 
+// Weight Types
+export interface WeightLog {
+  bmi: number;
+  date: string;
+  fat?: number;
+  logId: number;
+  source: string;
+  time: string;
+  weight: number;
+}
+
+export interface WeightResponse {
+  weight: WeightLog[];
+}
+
 // Combined daily data
 export interface DailyData {
   date: string;
@@ -91,6 +106,9 @@ export interface DailyData {
   lightSleep: number;
   remSleep: number;
   awake: number;
+  weight?: number;
+  bmi?: number;
+  bodyFat?: number;
 }
 
 // OAuth Config

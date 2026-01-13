@@ -3,6 +3,7 @@ import type {
   StoredTokens,
   ActivityResponse,
   SleepResponse,
+  WeightResponse,
   DailyData,
 } from "./types.js";
 import { refreshToken, isTokenExpired } from "./oauth.js";
@@ -66,10 +67,17 @@ export class FitbitClient {
     );
   }
 
+  async getWeight(date: string): Promise<WeightResponse> {
+    return this.request<WeightResponse>(
+      `/1/user/-/body/log/weight/date/${date}.json`
+    );
+  }
+
   async getDailyData(date: string): Promise<DailyData> {
-    const [activity, sleep] = await Promise.all([
+    const [activity, sleep, weightData] = await Promise.all([
       this.getActivity(date),
       this.getSleep(date),
+      this.getWeight(date),
     ]);
 
     const totalDistance = activity.summary.distances.find(
@@ -78,6 +86,12 @@ export class FitbitClient {
 
     const mainSleep = sleep.sleep.find((s) => s.isMainSleep) ?? sleep.sleep[0];
     const sleepStages = mainSleep?.levels?.summary;
+
+    // Use the latest weight measurement of the day
+    const latestWeight =
+      weightData.weight.length > 0
+        ? weightData.weight[weightData.weight.length - 1]
+        : null;
 
     return {
       date,
@@ -90,6 +104,9 @@ export class FitbitClient {
       lightSleep: sleepStages?.light?.minutes ?? 0,
       remSleep: sleepStages?.rem?.minutes ?? 0,
       awake: sleepStages?.wake?.minutes ?? 0,
+      weight: latestWeight?.weight,
+      bmi: latestWeight?.bmi,
+      bodyFat: latestWeight?.fat,
     };
   }
 }

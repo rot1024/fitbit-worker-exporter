@@ -15,5 +15,7 @@ export type {
   SleepSummary,
   SleepLog,
   SleepResponse,
+  WeightLog,
+  WeightResponse,
   DailyData,
 } from "./types.js";

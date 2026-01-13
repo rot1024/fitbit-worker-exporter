@@ -7,6 +7,7 @@ const DEFAULT_SCOPES = [
   "activity",
   "sleep",
   "profile",
+  "weight",
 ];
 
 export function generateState(): string {
