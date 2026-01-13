@@ -31,6 +31,20 @@ async function notionRequest<T>(
   return response.json() as Promise<T>;
 }
 
+function addNumberProperty(
+  properties: Record<string, unknown>,
+  name: string,
+  value: number | undefined,
+  options: { round?: boolean; skipZero?: boolean } = {}
+): void {
+  if (value === undefined) return;
+  if (options.skipZero && value === 0) return;
+
+  properties[name] = {
+    number: options.round ? Math.round(value * 100) / 100 : value,
+  };
+}
+
 export async function saveToNotion(
   apiKey: string,
   databaseId: string,
@@ -51,53 +65,40 @@ export async function saveToNotion(
     }
   );
 
+  const isUpdate = existing.results.length > 0;
+
+  // Build properties - only include non-zero values for updates
   const properties: Record<string, unknown> = {
     Date: {
       date: {
         start: data.date,
       },
     },
-    Calories: {
-      number: data.calories,
-    },
-    Steps: {
-      number: data.steps,
-    },
-    Distance: {
-      number: Math.round(data.distance * 100) / 100,
-    },
-    "Sleep Duration": {
-      number: data.sleepDuration,
-    },
-    "Sleep Efficiency": {
-      number: data.sleepEfficiency,
-    },
-    "Deep Sleep": {
-      number: data.deepSleep,
-    },
-    "Light Sleep": {
-      number: data.lightSleep,
-    },
-    "REM Sleep": {
-      number: data.remSleep,
-    },
-    Awake: {
-      number: data.awake,
-    },
   };
 
-  if (data.weight !== undefined) {
-    properties.Weight = { number: Math.round(data.weight * 100) / 100 };
-  }
-  if (data.bmi !== undefined) {
-    properties.BMI = { number: Math.round(data.bmi * 100) / 100 };
-  }
-  if (data.bodyFat !== undefined) {
-    properties["Body Fat"] = { number: Math.round(data.bodyFat * 100) / 100 };
-  }
+  // For updates, skip zero values to preserve existing data
+  const skipZero = isUpdate;
 
-  if (existing.results.length > 0) {
-    // Update existing page
+  // Activity data
+  addNumberProperty(properties, "Calories", data.calories, { skipZero });
+  addNumberProperty(properties, "Steps", data.steps, { skipZero });
+  addNumberProperty(properties, "Distance", data.distance, { round: true, skipZero });
+
+  // Sleep data
+  addNumberProperty(properties, "Sleep Duration", data.sleepDuration, { skipZero });
+  addNumberProperty(properties, "Sleep Efficiency", data.sleepEfficiency, { skipZero });
+  addNumberProperty(properties, "Deep Sleep", data.deepSleep, { skipZero });
+  addNumberProperty(properties, "Light Sleep", data.lightSleep, { skipZero });
+  addNumberProperty(properties, "REM Sleep", data.remSleep, { skipZero });
+  addNumberProperty(properties, "Awake", data.awake, { skipZero });
+
+  // Weight data
+  addNumberProperty(properties, "Weight", data.weight, { round: true, skipZero });
+  addNumberProperty(properties, "BMI", data.bmi, { round: true, skipZero });
+  addNumberProperty(properties, "Body Fat", data.bodyFat, { round: true, skipZero });
+
+  if (isUpdate) {
+    // Update existing page - only non-zero properties are included
     const pageId = existing.results[0].id;
     await notionRequest(apiKey, "PATCH", `/pages/${pageId}`, { properties });
   } else {
