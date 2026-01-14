@@ -124,6 +124,16 @@ curl https://your-worker.workers.dev/fetch
 curl https://your-worker.workers.dev/fetch?date=2024-01-15
 ```
 
+Or use the trigger script:
+
+```bash
+# Fetch yesterday's data
+npm run trigger
+
+# Fetch data for a specific date
+npm run trigger -- --date=2024-01-15
+```
+
 ### Backfill Historical Data
 
 Import historical data for a date range using the local CLI:
@@ -145,6 +155,7 @@ FITBIT_CLIENT_ID=your_client_id
 FITBIT_CLIENT_SECRET=your_client_secret
 NOTION_API_KEY=your_notion_api_key
 NOTION_DATA_SOURCE_ID=your_notion_database_id
+WORKER_URL=https://your-worker.workers.dev
 ```
 
 2. Login to Cloudflare: `npx wrangler login`
@@ -221,7 +232,8 @@ fitbit-worker-exporter/
 │       │   └── types.ts
 │       └── package.json
 ├── scripts/
-│   └── backfill.ts       # CLI for importing historical data
+│   ├── backfill.ts       # CLI for importing historical data
+│   └── trigger.ts        # CLI for triggering manual fetch
 ├── src/
 │   ├── index.ts          # Hono app
 │   └── notion.ts         # Notion integration

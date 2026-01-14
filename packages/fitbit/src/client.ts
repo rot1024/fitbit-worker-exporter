@@ -18,6 +18,7 @@ export interface TokenStorage {
 export class FitbitClient {
   private config: FitbitOAuthConfig;
   private storage: TokenStorage;
+  private refreshPromise: Promise<string> | null = null;
 
   constructor(config: FitbitOAuthConfig, storage: TokenStorage) {
     this.config = config;
@@ -31,12 +32,22 @@ export class FitbitClient {
     }
 
     if (isTokenExpired(tokens)) {
-      const newTokens = await refreshToken(this.config, tokens.refreshToken);
-      await this.storage.set(newTokens);
-      return newTokens.accessToken;
+      // Prevent concurrent refresh requests by reusing the same promise
+      if (!this.refreshPromise) {
+        this.refreshPromise = this.doRefresh(tokens.refreshToken).finally(() => {
+          this.refreshPromise = null;
+        });
+      }
+      return this.refreshPromise;
     }
 
     return tokens.accessToken;
+  }
+
+  private async doRefresh(refreshTokenValue: string): Promise<string> {
+    const newTokens = await refreshToken(this.config, refreshTokenValue);
+    await this.storage.set(newTokens);
+    return newTokens.accessToken;
   }
 
   private async request<T>(path: string): Promise<T> {

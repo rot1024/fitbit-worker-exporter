@@ -10,7 +10,8 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "backfill": "npx tsx scripts/backfill.ts"
+    "backfill": "npx tsx scripts/backfill.ts",
+    "trigger": "npx tsx scripts/trigger.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241230.0",
