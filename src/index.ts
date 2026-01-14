@@ -19,6 +19,8 @@ type Bindings = {
   OAUTH_REDIRECT_URI: string;
   DEBUG_MODE?: string;
   TZ_OFFSET?: string; // Timezone offset in hours (e.g., "9" for JST, "-5" for EST)
+  DISCORD_WEBHOOK_URL?: string;
+  SLACK_WEBHOOK_URL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -129,6 +131,38 @@ function getYesterdayDate(tzOffset: number): string {
   return localNow.toISOString().split("T")[0];
 }
 
+async function sendErrorNotification(
+  env: Bindings,
+  date: string,
+  error: Error
+): Promise<void> {
+  const message = `Fitbit Worker Exporter: Failed to fetch/save data for ${date}\nError: ${error.message}`;
+
+  const promises: Promise<Response>[] = [];
+
+  if (env.DISCORD_WEBHOOK_URL) {
+    promises.push(
+      fetch(env.DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message }),
+      })
+    );
+  }
+
+  if (env.SLACK_WEBHOOK_URL) {
+    promises.push(
+      fetch(env.SLACK_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: message }),
+      })
+    );
+  }
+
+  await Promise.allSettled(promises);
+}
+
 // Cron handler
 async function scheduled(
   _event: ScheduledEvent,
@@ -154,6 +188,8 @@ async function scheduled(
     console.log(`[Cron] Successfully saved data for ${date}`);
   } catch (err) {
     console.error(`[Cron] Failed to fetch/save data for ${date}:`, err);
+    const error = err instanceof Error ? err : new Error(String(err));
+    await sendErrorNotification(env, date, error);
     throw err;
   }
 }

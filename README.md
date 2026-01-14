@@ -100,7 +100,21 @@ npx wrangler secret put OAUTH_REDIRECT_URI
 
 `OAUTH_REDIRECT_URI` should be in the format `https://your-worker.your-subdomain.workers.dev/auth/callback`.
 
-### 7. OAuth Authentication
+### 7. (Optional) Configure Error Notifications
+
+To receive notifications when the cron job fails:
+
+```bash
+# Discord
+npx wrangler secret put DISCORD_WEBHOOK_URL
+
+# Slack
+npx wrangler secret put SLACK_WEBHOOK_URL
+```
+
+You can configure one or both.
+
+### 8. OAuth Authentication
 
 Visit the following URL in your browser to complete Fitbit authentication:
 
